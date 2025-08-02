@@ -1,0 +1,16 @@
+@import "tailwindcss";
+@plugin "daisyui";
+@plugin "daisyui/theme" {
+  name: "black";
+  default: true;
+
+  --color-primary: #1da1f2;
+}
+
+html {
+  overflow-y: scroll;
+}
+
+@utility container {
+  @apply flex-[4_4_0] border-r border-gray-700 min-h-screen ml-2 md:ml-0;
+}
