@@ -17,8 +17,14 @@ export const signUpValidation = (data) => {
 };
 
 export const signInValidation = (data) => {
-  if (!email || !username || !fullName || !password) {
+  const { email, password } = data;
+
+  if (!email || !password) {
     return { valid: false, error: "All fields are required" };
+  }
+
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return { valid: false, error: "Invalid email address" };
   }
 
   if (password.length < 6) {
@@ -27,5 +33,3 @@ export const signInValidation = (data) => {
 
   return { valid: true };
 };
-
-

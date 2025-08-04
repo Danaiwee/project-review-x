@@ -1,6 +1,7 @@
 import express from "express";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
+import cors from "cors";
 
 import connectDB from "./lib/connectDB.js";
 import logger from "./lib/logger.js";
@@ -17,7 +18,12 @@ const PORT = process.env.PORT;
 
 app.use(express.json({ limit: "10mb" }));
 app.use(cookieParser());
-app.use(cors());
+app.use(
+  cors({
+    origin: "http://localhost:3000",
+    credentials: true,
+  })
+);
 
 app.use("/api/auth", authRoutes);
 app.use("/api/posts", postRoutes);

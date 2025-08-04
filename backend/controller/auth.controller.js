@@ -1,5 +1,6 @@
 import bcrypt from "bcryptjs";
 
+import { handleError } from "../lib/error.js";
 import { signInValidation, signUpValidation } from "../lib/validation.js";
 import { generateTokenAndSetCookie } from "../lib/generateToken.js";
 
@@ -61,10 +62,10 @@ export const signIn = async (req, res) => {
       return res.status(400).json({ error: result.error });
     }
 
-    const { username, password } = data;
-    const user = await User.findOne({ username });
+    const { email, password } = data;
+    const user = await User.findOne({ email });
     if (!user) {
-      return res.status(400).json({ error: "Invalid username" });
+      return res.status(400).json({ error: "Invalid email address" });
     }
 
     const isValidPassword = await bcrypt.compare(password, user.password);
@@ -72,7 +73,7 @@ export const signIn = async (req, res) => {
       return res.status(400).json({ error: "Invalid password" });
     }
 
-    generateTokenAndSetCookie();
+    generateTokenAndSetCookie(user._id, res);
 
     const userToReturn = user.toObject();
     delete userToReturn.password;
@@ -93,9 +94,12 @@ export const logout = (req, res) => {
   }
 };
 
-export const checkAuth = (req, res) => {
+export const checkAuth = async (req, res) => {
   try {
-    const user = req.user;
+    const user = await User.findById(req.user._id).select("-password");
+    if (!user) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
 
     return res.status(200).json(user);
   } catch (error) {
