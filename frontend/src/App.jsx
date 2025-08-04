@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 
+import { useUserStore } from "./stores/useUserStore";
 import HomePage from "./pages/HomePage";
 import SignupPage from "./pages/SignupPage";
 import SigninPage from "./pages/SigninPage";
@@ -8,9 +9,18 @@ import ProfilePage from "./pages/ProfilePage";
 import LeftSidebar from "./compoenents/LeftSidebar";
 import RightSidebar from "./compoenents/RightSidebar";
 import BookmarkPage from "./pages/BookmarkPage";
+import { useEffect } from "react";
 
 const App = () => {
-  const authUser = true;
+  const { authUser, checkAuth, isCheckingAuth } = useUserStore();
+
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
+
+  if (isCheckingAuth) return null;
+
+  console.log("authUser", authUser);
 
   return (
     <div className='flex max-w-6xl mx-auto'>

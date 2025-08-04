@@ -6,6 +6,7 @@ import { Link } from "react-router-dom";
 import XSvg from "../compoenents/XSvg";
 import InputField from "../compoenents/InputField";
 import ButtonInput from "../compoenents/ButtonInput";
+import { useUserStore } from "../stores/useUserStore";
 
 const SigninPage = () => {
   const [formData, setFormData] = useState({
@@ -13,7 +14,7 @@ const SigninPage = () => {
     password: "",
   });
 
-  const isLoading = false;
+  const { signIn, isSigningIn } = useUserStore();
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -27,7 +28,7 @@ const SigninPage = () => {
   const handleFormSubmit = (e) => {
     e.preventDefault();
 
-    console.log(formData);
+    signIn(formData);
   };
   return (
     <main className='max-w-screen mx-auto flex h-screen px-10 gap-5'>
@@ -63,7 +64,7 @@ const SigninPage = () => {
             placeholder='●●●●●●●●'
           />
 
-          <ButtonInput type='submit' text='Sign in' isLoading={isLoading} />
+          <ButtonInput type='submit' text='Sign in' isLoading={isSigningIn} />
         </form>
 
         <div className='w-full flex items-center justify-center gap-1 mt-3'>

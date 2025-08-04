@@ -3,10 +3,15 @@ import { BiLogOut } from "react-icons/bi";
 
 import { LEFTSIDEBAR_LINK } from "../constants";
 import XSvg from "./XSvg";
+import { useUserStore } from "../stores/useUserStore";
+import { Loader2 } from "lucide-react";
 
 const LeftSidebar = () => {
+  const { authUser, logout, isLoggingOut } = useUserStore();
 
-  const handleLogout = () => {};
+  const handleLogout = () => {
+    logout();
+  };
 
   return (
     <aside className='md:flex-[2_2_0] w-18 max-w-52'>
@@ -33,30 +38,35 @@ const LeftSidebar = () => {
             </li>
           ))}
         </ul>
-  
-        <Link
-          to='/profile'
-          className='mt-auto mb-10 flex gap-2 items-start tranition-all duration-300 py-2 px-4 rounded-md'
-        >
-          <div className='avatar hidden md:inline-flex'>
-            <div className='w-8 rounded-full'>
-              <img src='/avatar.png' />
-            </div>
-          </div>
 
-          <div className='flex justify-between flex-1'>
+        <div className='flex items-center justify-between mt-auto mb-10 pr-4'>
+          <Link
+            to='/profile'
+            className=' flex gap-2 items-start tranition-all duration-300 py-2 px-4 rounded-md'
+          >
+            <div className='avatar hidden md:inline-flex'>
+              <div className='w-8 rounded-full'>
+                <img src='/avatar.png' />
+              </div>
+            </div>
+
             <div className='hidden md:block'>
               <p className='text-white font-bold text-sm w-20 truncate'>
-                John Doe
+                {authUser?.fullName}
               </p>
-              <p className='text-slate-500 text-sm'>@johndoe</p>
+              <p className='text-slate-500 text-sm'>@{authUser.username}</p>
             </div>
+          </Link>
+
+          {isLoggingOut ? (
+            <Loader2 className='size-4 animate-spin' />
+          ) : (
             <BiLogOut
               className='size-5 cursor-pointer'
               onClick={handleLogout}
             />
-          </div>
-        </Link>
+          )}
+        </div>
       </div>
     </aside>
   );

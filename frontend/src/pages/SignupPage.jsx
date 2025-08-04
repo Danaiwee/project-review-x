@@ -5,6 +5,7 @@ import { MdPassword } from "react-icons/md";
 import { MdDriveFileMoveOutline } from "react-icons/md";
 import { Link } from "react-router-dom";
 
+import { useUserStore } from "../stores/useUserStore";
 import XSvg from "../compoenents/XSvg";
 import InputField from "../compoenents/InputField";
 import ButtonInput from "../compoenents/ButtonInput";
@@ -17,7 +18,7 @@ const SignupPage = () => {
     password: "",
   });
 
-  const isLoading = false;
+  const { signUp, isSigningUp } = useUserStore();
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -31,7 +32,7 @@ const SignupPage = () => {
   const handleFormSubmit = (e) => {
     e.preventDefault();
 
-    console.log(formData);
+    signUp(formData);
   };
   return (
     <main className='max-w-screen mx-auto flex h-screen px-10 gap-5'>
@@ -87,7 +88,7 @@ const SignupPage = () => {
             placeholder='●●●●●●●●'
           />
 
-          <ButtonInput type='submit' text='Sign up' isLoading={isLoading} />
+          <ButtonInput type='submit' text='Sign up' isLoading={isSigningUp} />
         </form>
 
         <div className='w-full flex items-center justify-center gap-1 mt-3'>
