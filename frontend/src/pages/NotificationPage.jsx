@@ -4,12 +4,24 @@ import { FaHeart } from "react-icons/fa";
 import { UserPlus } from "lucide-react";
 import { Link } from "react-router-dom";
 
-import { NOTIFICATIONS } from "../constants";
+import { useNotificationStore } from "../stores/useNotificationStore";
+import { useEffect } from "react";
 
 const NotificationPage = () => {
-  const isDeleting = false;
+  const {
+    notifications,
+    getNotifications,
+    isDeleting,
+    deleteAllNotifications,
+  } = useNotificationStore();
 
-  const handleDeleteNotifications = () => {};
+  useEffect(() => {
+    getNotifications();
+  }, [getNotifications]);
+
+  const handleDeleteNotifications = () => {
+    deleteAllNotifications();
+  };
 
   return (
     <main className='container'>
@@ -39,10 +51,13 @@ const NotificationPage = () => {
         </div>
       )}
 
-      {NOTIFICATIONS.length > 0 ? (
+      {notifications.length > 0 ? (
         <>
-          {NOTIFICATIONS.map((notification) => (
-            <div className='h-20 border-b border-gray-700' key={notification._id}>
+          {notifications.map((notification) => (
+            <div
+              className='h-20 border-b border-gray-700'
+              key={notification._id}
+            >
               <div className='flex gap-2 p-4 items-center'>
                 {notification.type === "follow" && (
                   <UserPlus className='size-5 text-primary' />

@@ -9,7 +9,10 @@ export const getNotifications = async (req, res) => {
       return res.status(401).json({ error: "Unauthorized" });
     }
 
-    const notifications = await Notification.find({ to: userId, read: false });
+    const notifications = await Notification.find({ to: userId }).populate(
+      "from",
+      "profileImg username"
+    );
     if (!notifications) {
       return res.status(400).json({ error: "Notifications not found" });
     }

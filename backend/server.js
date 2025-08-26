@@ -28,7 +28,7 @@ app.use(
 app.use("/api/auth", authRoutes);
 app.use("/api/posts", postRoutes);
 app.use("/api/users", userRoutes);
-app.use("/aoi/notifications", notificationRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 app.listen(PORT, () => {
   logger.info(`Server is running on PORT ${PORT}`);
