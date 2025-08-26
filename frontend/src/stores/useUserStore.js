@@ -29,11 +29,14 @@ export const useUserStore = create((set) => ({
     try {
       signUpValidation(data);
       const response = await axios.post("/auth/sign-up", data);
+      if (response.data) {
+        toast.success("Signed up successfully");
+      }
 
       set({ authUser: response.data });
     } catch (error) {
       console.log(error);
-      toast.error(error.message || "Failed to create account");
+      toast.error("Invalid credentials");
     } finally {
       set({ isSigningUp: false });
     }
@@ -45,12 +48,14 @@ export const useUserStore = create((set) => ({
       signInValidation(data);
 
       const response = await axios.post("/auth/sign-in", data);
-      set({ authUser: response.data });
+      if (response.data) {
+        toast.success("Logged in successfully");
+      }
 
-      toast.success("Logged in successfully");
+      set({ authUser: response.data });
     } catch (error) {
       console.log(error);
-      toast.error(error.message || "Invalid username or password");
+      toast.error("Invalid username or password");
     } finally {
       set({ isSigningIn: false });
     }

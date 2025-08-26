@@ -29,10 +29,10 @@ const SignupPage = () => {
     }));
   };
 
-  const handleFormSubmit = (e) => {
+  const handleFormSubmit = async (e) => {
     e.preventDefault();
 
-    signUp(formData);
+    await signUp(formData);
   };
   return (
     <main className='max-w-screen mx-auto flex h-screen px-10 gap-5'>

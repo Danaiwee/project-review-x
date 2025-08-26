@@ -14,7 +14,7 @@ import Tab from "../compoenents/Tab.jsx";
 import Posts from "../compoenents/Posts.jsx";
 
 const ProfilePage = () => {
-  const [feedType, setFeedType] = useState("posts");
+  const [feedType, setFeedType] = useState("Posts");
 
   const coverImageRef = useRef(null);
   const profileImageRef = useRef(null);
@@ -174,19 +174,19 @@ const ProfilePage = () => {
           setFeedType={setFeedType}
           feedType={feedType}
           text='Posts'
-          value='posts'
+          value='Posts'
         />
         <Tab
           setFeedType={setFeedType}
           feedType={feedType}
           text='Likes'
-          value='likes'
+          value='Likes'
         />
         <Tab
           setFeedType={setFeedType}
           feedType={feedType}
           text='Retweet'
-          value='retweet'
+          value='Retweet'
         />
       </div>
       <Posts feedType={feedType} />

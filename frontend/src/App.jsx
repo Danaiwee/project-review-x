@@ -20,8 +20,6 @@ const App = () => {
 
   if (isCheckingAuth) return null;
 
-  console.log("authUser", authUser);
-
   return (
     <div className='flex max-w-6xl mx-auto'>
       {authUser && <LeftSidebar />}

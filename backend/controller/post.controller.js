@@ -9,7 +9,7 @@ import Notification from "../models/notification.model.js";
 export const getAllPosts = async (req, res) => {
   try {
     const posts = await Post.find()
-      .sort({ created: -1 })
+      .sort({ createdAt: -1 })
       .populate({ path: "user", select: "-password" })
       .populate({ path: "comments.user", select: "-password" });
     if (!posts) {
@@ -56,7 +56,7 @@ export const getFollowingPosts = async (req, res) => {
       return res.status(404).json({ error: "Posts not found" });
     }
 
-    return res.status(400).json(followingPosts);
+    return res.status(200).json(followingPosts);
   } catch (error) {
     handleError(res, "getFollowingPosts", error);
   }
@@ -145,7 +145,17 @@ export const commentOnPosts = async (req, res) => {
     post.comments.push(commentData);
     await post.save();
 
-    return res.status(200).json(post);
+    // populate the last inserted comment with user details
+    const updatedPost = await post.populate({
+      path: "comments.user",
+      select: "fullName username profileImg",
+    });
+
+    // return just the last added comment
+    const populatedComment =
+      updatedPost.comments[updatedPost.comments.length - 1];
+
+    return res.status(200).json({ newComment: populatedComment });
   } catch (error) {
     handleError(res, "commentsOnPosts", error);
   }
@@ -157,6 +167,7 @@ export const likeUnlikePost = async (req, res) => {
     if (!user) {
       return res.status(401).json({ error: "Unauthorized" });
     }
+    const userId = user._id;
 
     const postId = req.params.id;
     if (!postId) {
@@ -170,8 +181,6 @@ export const likeUnlikePost = async (req, res) => {
     if (!post) {
       return res.status(404).json({ error: "Post not found" });
     }
-
-    const userId = user._id;
 
     const isUserLiked = post.likes.find((like) => like.equals(userId));
     if (isUserLiked) {
@@ -226,10 +235,13 @@ export const deletePost = async (req, res) => {
 
     await Post.findByIdAndDelete(postId).session(session);
 
-    user.likes = user.likes.filter((like) => !like.equals(postId));
+    user.likePost = user.likePost.filter((like) => !like.equals(postId));
 
     await user.save({ session });
+
     await session.commitTransaction();
+
+    return res.status(200).json({ message: "Deleted post successfully" });
   } catch (error) {
     await session.abortTransaction();
     handleError(res, "deletePost", error);

@@ -1,25 +1,32 @@
 import { CiImageOn } from "react-icons/ci";
 import { BsEmojiSmileFill } from "react-icons/bs";
 import { IoCloseSharp } from "react-icons/io5";
-import { USERS } from "../constants";
 import { useRef, useState } from "react";
+import { usePostStore } from "../stores/usePostStore";
+import { useUserStore } from "../stores/useUserStore";
 
 const CreatePost = () => {
-  const [text, setText] = useState("");
-  const [image, setImage] = useState(null);
+  const [data, setData] = useState({
+    text: "",
+    image: null,
+  });
 
   const imageRef = useRef(null);
 
-  const isPending = false;
+  const { authUser } = useUserStore();
+  const { createPost, isCreatingPost } = usePostStore();
 
-  const { profileImg } = USERS[0];
+  const { profileImg } = authUser;
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
       const reader = new FileReader();
       reader.onload = () => {
-        setImage(reader.result);
+        setData((prevState) => ({
+          ...prevState,
+          image: reader.result,
+        }));
       };
 
       reader.readAsDataURL(file);
@@ -27,11 +34,23 @@ const CreatePost = () => {
   };
 
   const handleRemoveImage = () => {
-    setImage(null);
+    setData((prevState) => ({ ...prevState, image: null }));
     imageRef.current.value = null;
   };
 
-  const handleFormSubmit = () => {};
+  const handleFormSubmit = async (e) => {
+    e.preventDefault();
+    const { success } = await createPost(data);
+
+    if (success) {
+      setData({
+        text: "",
+        image: null,
+      });
+      imageRef.current.value = null;
+    }
+  };
+
   return (
     <div className='flex p-4 items-start gap-4 border-b border-gray-700'>
       <div className='avatar'>
@@ -44,11 +63,13 @@ const CreatePost = () => {
         <textarea
           className='textarea w-full p-0 text-md resize-none border-none focus:outline-none border-gray-800'
           placeholder="What's happening"
-          value={text}
-          onChange={(e) => setText(e.target.value)}
+          value={data.text}
+          onChange={(e) =>
+            setData((prevState) => ({ ...prevState, text: e.target.value }))
+          }
         />
 
-        {image && (
+        {data.image && (
           <div className='relative w-72'>
             <IoCloseSharp
               className='absolute top-0 right-0 text-white bg-gray-800 rounded-full size-5 cursor-pointer'
@@ -56,7 +77,7 @@ const CreatePost = () => {
             />
 
             <img
-              src={image}
+              src={data.image}
               className='w-full mx-auto h-72 object-contain rounded'
             />
           </div>
@@ -65,7 +86,9 @@ const CreatePost = () => {
         <div className='w-full flex justify-between border-t py-2 border-t-gray-700'>
           <div className='flex gap-3 items-center '>
             <CiImageOn
-              className={`size-6 cursor-pointer ${image && "fill-primary"}`}
+              className={`size-6 cursor-pointer ${
+                data.image && "fill-primary"
+              }`}
               onClick={() => imageRef.current.click()}
             />
             <BsEmojiSmileFill className='fill-primary size-5 cursor-pointer' />
@@ -80,7 +103,7 @@ const CreatePost = () => {
           />
 
           <button className='btn btn-primary rounded-full btn-sm text-white px-6'>
-            {isPending ? "Posting..." : "Post"}
+            {isCreatingPost ? "Posting..." : "Post"}
           </button>
         </div>
       </form>

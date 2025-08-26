@@ -6,25 +6,42 @@ import { BiRepost } from "react-icons/bi";
 import { useState } from "react";
 
 import { formatPostDate } from "../lib/utils.js";
+import { useUserStore } from "../stores/useUserStore.js";
+import { usePostStore } from "../stores/usePostStore.js";
 
 const Post = ({ post }) => {
   const [comment, setComment] = useState("");
-  const [isLiked, setIsLiked] = useState(false);
+  const [isLiking, setIsLiking] = useState(false);
 
   const { text, user, createdAt, image, comments, _id, likes } = post;
-  const { username, fullName, profileImg } = user;
+  const { username, fullName, profileImg, _id: postUserId } = user;
 
-  const isMyPost = true;
-  const isDeleting = false;
-  const isCommenting = false;
-  const isLiking = false;
+  const { authUser } = useUserStore();
+  const { deletePost, isDeleting, likeUnlike, isCommenting, createComment } =
+    usePostStore();
 
-  const handleDeletePost = () => {};
+  const isMyPost = authUser._id === postUserId;
+  const isLiked = post.likes.includes(authUser._id);
 
-  const handleCommentSubmit = () => {};
+  const handleDeletePost = async () => {
+    await deletePost(_id);
+  };
 
-  const handleLikePost = () => {
-    setIsLiked(!isLiked);
+  const handleCommentSubmit = (e) => {
+    e.preventDefault();
+    createComment(_id, comment);
+    setComment("");
+  };
+
+  const handleLikePost = async () => {
+    setIsLiking(true);
+    try {
+      await likeUnlike(_id, authUser._id);
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setIsLiking(false);
+    }
   };
   return (
     <>
