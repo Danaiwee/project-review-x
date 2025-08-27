@@ -42,7 +42,7 @@ const App = () => {
           element={authUser ? <NotificationPage /> : <Navigate to='/signin' />}
         />
         <Route
-          path='/profile'
+          path='/profile/:username'
           element={authUser ? <ProfilePage /> : <Navigate to='/signin' />}
         />
 

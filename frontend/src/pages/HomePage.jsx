@@ -1,10 +1,17 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { HOMPAGE_FEED_TYPES } from "../constants";
 import CreatePost from "../compoenents/CreatePost";
 import Posts from "../compoenents/Posts";
+import { usePostStore } from "../stores/usePostStore";
 
 const HomePage = () => {
   const [feedType, setFeedType] = useState("For you");
+
+  const { fetchPosts, isFetchingPosts, posts } = usePostStore();
+
+  useEffect(() => {
+    fetchPosts(feedType);
+  }, [feedType, fetchPosts]);
   return (
     <main className='container'>
       <div className='w-full flex border-b border-gray-700'>
@@ -24,7 +31,11 @@ const HomePage = () => {
 
       <CreatePost />
 
-      <Posts feedType={feedType} />
+      <Posts
+        feedType={feedType}
+        isFetchingPosts={isFetchingPosts}
+        posts={posts}
+      />
     </main>
   );
 };

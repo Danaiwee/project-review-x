@@ -29,7 +29,7 @@ export const getLikedPost = async (req, res) => {
       return res.status(404).json({ error: "User not found" });
     }
 
-    const likesPost = await Post.find({ _id: { $in: user.likesPost } })
+    const likesPost = await Post.find({ _id: { $in: user.likedPost } })
       .sort({ createdAt: -1 })
       .populate({ path: "user", select: "-password" })
       .populate({ path: "comments.user", select: "-password" });
@@ -81,6 +81,24 @@ export const getUserPosts = async (req, res) => {
     return res.status(200).json(userPosts);
   } catch (error) {
     handleError(res, "getUserPosts", error);
+  }
+};
+
+export const getBookmarkPosts = async (req, res) => {
+  try {
+    const user = req.user;
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const bookmarkPosts = await Post.find({ bookmarks: { $in: user._id } })
+      .sort({ createdAt: -1 })
+      .populate({ path: "user", select: "-password" })
+      .populate({ path: "comments.user", select: "-password" });
+
+    return res.status(200).json(bookmarkPosts);
+  } catch (error) {
+    handleError(res, "getBookmarkPosts", error);
   }
 };
 
@@ -185,8 +203,10 @@ export const likeUnlikePost = async (req, res) => {
     const isUserLiked = post.likes.find((like) => like.equals(userId));
     if (isUserLiked) {
       post.likes = post.likes.filter((like) => !like.equals(userId));
+      user.likedPost = user.likedPost.filter((post) => !post.equals(postId));
     } else {
       post.likes.push(userId);
+      user.likedPost.push(postId);
 
       const receiverId = post.user;
       const [newNotification] = await Notification.create(
@@ -206,6 +226,7 @@ export const likeUnlikePost = async (req, res) => {
     }
 
     await post.save({ session });
+    await user.save({ session });
 
     await session.commitTransaction();
 
@@ -247,5 +268,39 @@ export const deletePost = async (req, res) => {
     handleError(res, "deletePost", error);
   } finally {
     await session.endSession();
+  }
+};
+
+export const toggleBookmark = async (req, res) => {
+  try {
+    const user = req.user;
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const postId = req.params.id;
+    if (!postId) {
+      return res.status(400).json({ error: "Post ID is required." });
+    }
+
+    const post = await Post.findById(postId);
+    if (!post) {
+      return res.status(404).json({ error: "Post not found" });
+    }
+
+    const isUserAlreadyBookmark = post.bookmarks.includes(user._id);
+    if (isUserAlreadyBookmark) {
+      post.bookmarks = post.bookmarks.filter(
+        (bookmark) => bookmark.toString() !== user._id.toString()
+      );
+    } else {
+      post.bookmarks.push(user._id);
+    }
+
+    await post.save();
+
+    return res.status(200).json(post.bookmarks);
+  } catch (error) {
+    handleError(res, "toggleBookmark", error);
   }
 };

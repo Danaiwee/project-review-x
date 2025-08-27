@@ -8,10 +8,10 @@ export const usePostStore = create((set) => ({
   isFetchingPosts: false,
   isCreatingPost: false,
   isDeletingPost: false,
-  isLiking: false,
   iscommenting: false,
+  isToggling: false,
 
-  fetchPosts: async (feedType = "For you") => {
+  fetchPosts: async (feedType) => {
     set({ isFetchingPosts: true });
 
     try {
@@ -27,11 +27,11 @@ export const usePostStore = create((set) => ({
           break;
 
         case "Posts":
-          endpoint = "posts/user-posts";
+          endpoint = "/posts/user-posts";
           break;
 
         case "Likes":
-          endpoint = "posts/liked-posts";
+          endpoint = "/posts/liked-posts";
           break;
 
         case "Bookmarks":
@@ -97,8 +97,6 @@ export const usePostStore = create((set) => ({
   },
 
   likeUnlike: async (postId, userId) => {
-    set({ isLiking: true });
-
     try {
       const response = await axios.post(`/posts/like-unlike/${postId}`);
       const updatedLikes = response.data;
@@ -116,8 +114,6 @@ export const usePostStore = create((set) => ({
       );
     } catch (error) {
       console.log(error);
-    } finally {
-      set({ isLiking: false });
     }
   },
 
@@ -143,6 +139,30 @@ export const usePostStore = create((set) => ({
       console.log(error);
     } finally {
       set({ iscommenting: false });
+    }
+  },
+
+  toggleBookmark: async (postId, userId) => {
+    try {
+      const response = await axios.post(`/posts/bookmark/${postId}`);
+      if (response.data.error) {
+        throw new Error("Failed to add bookmark");
+      }
+
+      set((prevState) => ({
+        posts: prevState.posts.map((post) =>
+          post._id === postId ? { ...post, bookmarks: response.data } : post
+        ),
+      }));
+
+      const isBookmarked = response.data.includes(userId);
+      toast.success(
+        isBookmarked
+          ? "Added post to your bookmark"
+          : "Removed post from your bookmark"
+      );
+    } catch (error) {
+      console.log(error);
     }
   },
 }));

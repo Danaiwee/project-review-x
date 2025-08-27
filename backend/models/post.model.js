@@ -19,6 +19,18 @@ const postSchema = new mongoose.Schema(
         ref: "User",
       },
     ],
+    bookmarks: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
+    retweets: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
     comments: [
       {
         text: {

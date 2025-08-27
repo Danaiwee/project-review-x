@@ -12,16 +12,25 @@ import { usePostStore } from "../stores/usePostStore.js";
 const Post = ({ post }) => {
   const [comment, setComment] = useState("");
   const [isLiking, setIsLiking] = useState(false);
+  const [isToggling, setIsToggling] = useState(false);
 
-  const { text, user, createdAt, image, comments, _id, likes } = post;
+  const { text, user, createdAt, image, comments, _id, likes, bookmarks } =
+    post;
   const { username, fullName, profileImg, _id: postUserId } = user;
 
   const { authUser } = useUserStore();
-  const { deletePost, isDeleting, likeUnlike, isCommenting, createComment } =
-    usePostStore();
+  const {
+    deletePost,
+    isDeleting,
+    likeUnlike,
+    isCommenting,
+    createComment,
+    toggleBookmark,
+  } = usePostStore();
 
   const isMyPost = authUser._id === postUserId;
-  const isLiked = post.likes.includes(authUser._id);
+  const isLiked = likes.includes(authUser._id);
+  const isBookmarked = bookmarks.includes(authUser._id);
 
   const handleDeletePost = async () => {
     await deletePost(_id);
@@ -41,6 +50,17 @@ const Post = ({ post }) => {
       console.log(error);
     } finally {
       setIsLiking(false);
+    }
+  };
+
+  const handleBookmarkPost = async () => {
+    setIsToggling(true);
+    try {
+      await toggleBookmark(post._id, authUser._id);
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setIsToggling(false);
     }
   };
   return (
@@ -218,8 +238,19 @@ const Post = ({ post }) => {
               </div>
             </div>
 
-            <div className='flex w-1/3 justify-end gap-2 items-center'>
-              <FaRegBookmark className='size-4 text-slate-600 cursor-pointer' />
+            <div
+              className='flex w-1/3 justify-end gap-2 items-center'
+              onClick={handleBookmarkPost}
+            >
+              {isToggling ? (
+                <Loader2 className='size-4 animate-spin' />
+              ) : (
+                <FaRegBookmark
+                  className={`size-4 cursor-pointer group-hover:text-blue-500 ${
+                    isBookmarked ? "text-blue-500" : "text-slate-500"
+                  }`}
+                />
+              )}
             </div>
           </div>
         </div>

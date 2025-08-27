@@ -50,10 +50,10 @@ const userShcema = new mongoose.Schema(
       type: String,
       default: "",
     },
-    likePost: [
+    likedPost: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "POST",
+        ref: "Post",
         default: "",
       },
     ],

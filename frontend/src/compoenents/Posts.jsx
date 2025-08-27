@@ -1,17 +1,7 @@
-import { useEffect } from "react";
-import { POSTS } from "../constants";
-import { usePostStore } from "../stores/usePostStore";
-
 import Post from "./Post";
 import PostSkeleton from "./skeletons/PostSkeleton";
 
-const Posts = ({ feedType }) => {
-  const { fetchPosts, isFetchingPosts, posts } = usePostStore();
-
-  useEffect(() => {
-    fetchPosts(feedType);
-  }, [feedType, fetchPosts]);
-
+const Posts = ({ posts, isFetchingPosts }) => {
   return (
     <>
       {isFetchingPosts && (

@@ -27,7 +27,11 @@ const LeftSidebar = () => {
               className='flex justify-center md:justify-start'
             >
               <Link
-                to={link.href}
+                to={
+                  link.title === "Profile"
+                    ? `/profile/${authUser.username}`
+                    : link.href
+                }
                 className='flex gap-3 items-center hover:bg-stone-900 rounded-md transition-all duration-300 py-2 w-full cursor-pointer px-2 mx-2'
               >
                 <link.icon className='size-8' />

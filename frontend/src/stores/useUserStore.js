@@ -10,6 +10,8 @@ export const useUserStore = create((set) => ({
   isSigningUp: false,
   isSigningIn: false,
   isLoggingOut: false,
+  isFetching: false,
+  userProfile: null,
 
   checkAuth: async () => {
     set({ isCheckingAuth: true });
@@ -72,6 +74,20 @@ export const useUserStore = create((set) => ({
       console.log(error);
     } finally {
       set({ isLoggingOut: false });
+    }
+  },
+
+  getUserProfile: async (username) => {
+    set({ isFetching: true });
+    try {
+      const response = await axios.get(`/users/profile/${username}`);
+      if (response.data.error) throw new Error("Failed to get user profile");
+
+      set({ userProfile: response.data });
+    } catch (error) {
+      console.log(error);
+    } finally {
+      set({ isFetching: false });
     }
   },
 }));

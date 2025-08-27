@@ -1,42 +1,49 @@
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { FaArrowLeft } from "react-icons/fa";
 import { IoCalendarOutline } from "react-icons/io5";
 import { FaLink } from "react-icons/fa";
 import { MdEdit } from "react-icons/md";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { formatMemberSinceDate } from "../lib/utils.js";
-import { USERS } from "../constants";
 
 import EditProfileModal from "../compoenents/EditProfileModal";
 import ProfileHeaderSkeleton from "../compoenents/skeletons/ProfileHeaderSkeleton";
 import Tab from "../compoenents/Tab.jsx";
 import Posts from "../compoenents/Posts.jsx";
+import { useUserStore } from "../stores/useUserStore.js";
+import { usePostStore } from "../stores/usePostStore.js";
 
 const ProfilePage = () => {
+  const params = useParams();
+  const usernameParams = params.username;
+
   const [feedType, setFeedType] = useState("Posts");
 
   const coverImageRef = useRef(null);
   const profileImageRef = useRef(null);
 
-  const isLoading = false;
-  const isFetching = false;
-  const user = true;
-  const posts = [1, 2, 3, 4];
-  const isMyProfile = true;
-  const isFollowed = false;
-
   const {
-    username,
-    fullName,
-    coverImg,
-    profileImg,
-    bio,
-    link,
-    createdAt,
-    following,
-    followers,
-  } = USERS[0];
+    userProfile: user,
+    getUserProfile,
+    authUser,
+    isFetching,
+  } = useUserStore();
+
+  const { isFetchingPosts, posts, fetchPosts } = usePostStore();
+
+  useEffect(() => {
+    getUserProfile(usernameParams);
+  }, [usernameParams, getUserProfile]);
+
+  useEffect(() => {
+    fetchPosts(feedType);
+  }, [feedType, fetchPosts]);
+
+  const isMyProfile = authUser?._id === user?._id;
+
+  const isLoading = false;
+  const isFollowed = false;
 
   const handleImageChange = () => {};
 
@@ -55,7 +62,7 @@ const ProfilePage = () => {
         </Link>
 
         <div className='flex flex-col justify-center'>
-          <p className='font-bold text-lg'>{fullName}</p>
+          <p className='font-bold text-lg'>{user?.fullName}</p>
           <p className='text-sm text-slate-500'>{posts.length} posts</p>
         </div>
       </div>
@@ -63,7 +70,7 @@ const ProfilePage = () => {
       {/*COVER IMAGE*/}
       <div className='relative'>
         <img
-          src={coverImg || "/cover.jpg"}
+          src={user?.coverImg || "/cover.jpg"}
           className='object-cover w-full h-52 z-20'
           alt='cover image'
         />
@@ -94,7 +101,7 @@ const ProfilePage = () => {
         {/*USER AVATAR*/}
         <div className='avatar absolute -bottom-16 left-4'>
           <div className='w-32 rounded-full relative'>
-            <img src={profileImg || "/avatar.png"} />
+            <img src={user?.profileImg || "/avatar.png"} />
             {isMyProfile && (
               <div className='absolute top-5 right-3 p-1 bg-primary rounded-full group-hover:opacity-100 cursor-pointer'>
                 <MdEdit
@@ -131,23 +138,23 @@ const ProfilePage = () => {
 
       <div className='flex flex-col gap-2 mt-14 px-4'>
         <div className='flex flex-col'>
-          <p className='font-bold text-lg'>{fullName}</p>
-          <p className='text-sm text-slate-500'>@{username}</p>
-          <p className='text-sm my-1'>{bio}</p>
+          <p className='font-bold text-lg'>{user?.fullName}</p>
+          <p className='text-sm text-slate-500'>@{user?.username}</p>
+          <p className='text-sm my-1'>{user?.bio}</p>
         </div>
 
         <div className='flex gap-4 flex-wrap'>
-          {link && (
+          {user?.link && (
             <div className='flex gap-1 items-center'>
               <>
                 <FaLink className='size-3 text-slate-500' />
                 <a
-                  href={link}
+                  href={user?.link}
                   target='_blank'
                   rel='noreferrer'
                   className='text-sm text-primary hover:underline'
                 >
-                  {link}
+                  {user?.link}
                 </a>
               </>
             </div>
@@ -156,15 +163,19 @@ const ProfilePage = () => {
           <div className='flex gap-2 items-center'>
             <IoCalendarOutline className='size-4 text-slate-500' />
             <span className='text-sm text-slate-500'>
-              {formatMemberSinceDate(createdAt)}
+              {formatMemberSinceDate(user?.createdAt)}
             </span>
           </div>
         </div>
 
         <div className='flex gap-2'>
           <div className='flex gap-1 items-center'>
-            <p className='font-bold text-xs'>{following.length} following</p>
-            <p className='font-bold text-xs'>{followers.length} followers</p>
+            <p className='font-bold text-xs'>
+              {user?.following.length} following
+            </p>
+            <p className='font-bold text-xs'>
+              {user?.followers.length} followers
+            </p>
           </div>
         </div>
       </div>
@@ -189,7 +200,11 @@ const ProfilePage = () => {
           value='Retweet'
         />
       </div>
-      <Posts feedType={feedType} />
+      <Posts
+        feedType={feedType}
+        isFetchingPosts={isFetchingPosts}
+        posts={posts}
+      />
     </main>
   );
 };
