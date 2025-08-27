@@ -11,6 +11,7 @@ export const useUserStore = create((set) => ({
   isSigningIn: false,
   isLoggingOut: false,
   isFetching: false,
+  isUpdating: false,
   userProfile: null,
   isGettingSuggestedUsers: false,
   suggestedUsers: [],
@@ -138,6 +139,23 @@ export const useUserStore = create((set) => ({
     } catch (error) {
       console.log(error);
       toast.error("Failed to toggle follow");
+    }
+  },
+
+  updateUserProfile: async (data) => {
+    set({ isUpdating: true });
+    try {
+      const response = await axios.post(`/users/profile/update`, data);
+      if (response.data.error) throw new Error("Faield to update profile");
+
+      set({ userProfile: response.data });
+      if (response.data) {
+        toast.success("Updated profile successfully");
+      }
+    } catch (error) {
+      console.log(error);
+    } finally {
+      set({ isUpdating: false });
     }
   },
 }));

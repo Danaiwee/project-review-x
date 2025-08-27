@@ -13,12 +13,15 @@ import Tab from "../compoenents/Tab.jsx";
 import Posts from "../compoenents/Posts.jsx";
 import { useUserStore } from "../stores/useUserStore.js";
 import { usePostStore } from "../stores/usePostStore.js";
+import { Loader2 } from "lucide-react";
 
 const ProfilePage = () => {
   const params = useParams();
   const usernameParams = params.username;
 
   const [feedType, setFeedType] = useState("Posts");
+  const [coverImage, setCoverImage] = useState(null);
+  const [profileImage, setProfileImage] = useState(null);
 
   const coverImageRef = useRef(null);
   const profileImageRef = useRef(null);
@@ -29,6 +32,8 @@ const ProfilePage = () => {
     authUser,
     isFetching,
     toggleFollow,
+    isUpdating,
+    updateUserProfile,
   } = useUserStore();
 
   const { isFetchingPosts, posts, fetchPosts } = usePostStore();
@@ -44,18 +49,30 @@ const ProfilePage = () => {
   const isMyProfile = authUser?._id === user?._id;
   const isFollowed = authUser.following.includes(user?._id);
 
-  const isLoading = false;
-
-  const handleImageChange = () => {};
+  const handleImageChange = (e, state) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        state === "coverImage" && setCoverImage(reader.result);
+        state === "profileImage" && setProfileImage(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleFollow = () => {
     toggleFollow(user._id, authUser._id);
   };
 
+  const handleUpdate = async () => {
+    await updateUserProfile({ profileImg: profileImage, coverImg: coverImage });
+  };
+
   return (
     <main className='container'>
-      {(isLoading || isFetching) && <ProfileHeaderSkeleton />}
-      {!isLoading && !isFetching && !user && (
+      {isFetching && <ProfileHeaderSkeleton />}
+      {!isFetching && !user && (
         <p className='text-center text-lg mt-20'>User not found</p>
       )}
 
@@ -73,7 +90,7 @@ const ProfilePage = () => {
       {/*COVER IMAGE*/}
       <div className='relative'>
         <img
-          src={user?.coverImg || "/cover.jpg"}
+          src={coverImage || user?.coverImg || "/cover.jpg"}
           className='object-cover w-full h-52 z-20'
           alt='cover image'
         />
@@ -90,6 +107,7 @@ const ProfilePage = () => {
         <input
           type='file'
           hidden
+          accept='image/*'
           ref={coverImageRef}
           onChange={(e) => handleImageChange(e, "coverImage")}
         />
@@ -97,6 +115,7 @@ const ProfilePage = () => {
         <input
           type='file'
           hidden
+          accept='image/*'
           ref={profileImageRef}
           onChange={(e) => handleImageChange(e, "profileImage")}
         />
@@ -104,7 +123,7 @@ const ProfilePage = () => {
         {/*USER AVATAR*/}
         <div className='avatar absolute -bottom-16 left-4'>
           <div className='w-32 rounded-full relative'>
-            <img src={user?.profileImg || "/avatar.png"} />
+            <img src={profileImage || user?.profileImg || "/avatar.png"} />
             {isMyProfile && (
               <div className='absolute top-5 right-3 p-1 bg-primary rounded-full group-hover:opacity-100 cursor-pointer'>
                 <MdEdit
@@ -119,21 +138,26 @@ const ProfilePage = () => {
 
       <div className='flex justify-end px-4 mt-5'>
         {isMyProfile ? (
-          <EditProfileModal />
+          <EditProfileModal user={user} />
         ) : (
           <button
             className={`btn btn-outline rounded-full btn-sm flex items-center gap-2 px-6 ${
               isFollowed ? "bg-primary" : "bg-gray-700"
             }`}
             onClick={handleFollow}
-            disabled={isLoading}
           >
-            {isLoading ? (
+            {isFollowed ? "Following" : "Follow"}
+          </button>
+        )}
+        {(coverImage || profileImage) && (
+          <button
+            className='btn btn-primary rounded-full btn-sm text-white px-4 ml-2'
+            onClick={handleUpdate}
+          >
+            {isUpdating ? (
               <Loader2 className='size-4 animate-spin' />
-            ) : isFollowed ? (
-              "Following"
             ) : (
-              "Follow"
+              "Update"
             )}
           </button>
         )}

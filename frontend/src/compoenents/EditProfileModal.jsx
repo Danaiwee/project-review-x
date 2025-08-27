@@ -3,17 +3,20 @@ import { IoMdClose } from "react-icons/io";
 import InputField from "./InputField";
 import ButtonInput from "./ButtonInput";
 import { useState } from "react";
+import { useUserStore } from "../stores/useUserStore";
 
-const EditProfileModal = () => {
+const EditProfileModal = ({ user }) => {
   const [formData, setFormData] = useState({
-    fullName: "",
-    username: "",
-    email: "",
-    bio: "",
-    link: "",
-    currentPassword: "",
-    newPassword: "",
+    fullName: user?.fullName || "",
+    username: user?.username || "",
+    email: user?.email || "",
+    bio: user?.bio || "",
+    link: user?.link || "",
+    currentPassword: user?.currentPassword || "",
+    newPassword: user?.newPassword || "",
   });
+
+  const { isUpdating, updateUserProfile } = useUserStore();
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -24,13 +27,11 @@ const EditProfileModal = () => {
     }));
   };
 
-  const handleFormSubmit = (e) => {
+  const handleFormSubmit = async (e) => {
     e.preventDefault();
-
-    console.log(formData);
+    await updateUserProfile(formData);
+    document.getElementById("edit_profile_modal").close();
   };
-
-  const isLoading = false;
 
   return (
     <>
@@ -137,7 +138,7 @@ const EditProfileModal = () => {
             </div>
 
             <div className='flex justify-end'>
-              <ButtonInput text='Update' isLoading={isLoading} />
+              <ButtonInput text='Update' isLoading={isUpdating} />
             </div>
           </form>
         </div>
