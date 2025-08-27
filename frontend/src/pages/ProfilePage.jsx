@@ -38,8 +38,8 @@ const ProfilePage = () => {
   }, [usernameParams, getUserProfile]);
 
   useEffect(() => {
-    fetchPosts(feedType);
-  }, [feedType, fetchPosts]);
+    fetchPosts(feedType, usernameParams);
+  }, [feedType, fetchPosts, usernameParams]);
 
   const isMyProfile = authUser?._id === user?._id;
   const isFollowed = authUser.following.includes(user?._id);

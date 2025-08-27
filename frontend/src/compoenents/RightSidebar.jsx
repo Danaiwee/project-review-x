@@ -3,10 +3,9 @@ import { Loader2 } from "lucide-react";
 
 import RightSidebarSkeleton from "./skeletons/RightSidebarSkeleton";
 import { useUserStore } from "../stores/useUserStore";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
 const RightSidebar = () => {
-  const [isLoading, setIsLoading] = useState(false);
   const {
     isGettingSuggestedUsers,
     getSuggestedUsers,
@@ -20,13 +19,10 @@ const RightSidebar = () => {
   }, [getSuggestedUsers]);
 
   const handleFollow = async (targetId, userId) => {
-    setIsLoading(true);
     try {
       await toggleFollow(targetId, userId);
     } catch (error) {
       console.log(error);
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -74,11 +70,7 @@ const RightSidebar = () => {
                 className='btn bg-white text-black hover:bg-white hover:opacity-90 rounded-full btn-sm'
                 onClick={() => handleFollow(user._id, authUser._id)}
               >
-                {isLoading ? (
-                  <Loader2 className='size-5 animate-spin' />
-                ) : (
-                  <>Follow</>
-                )}
+                Follow
               </button>
             </div>
           ))}

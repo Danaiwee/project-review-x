@@ -11,7 +11,7 @@ export const usePostStore = create((set) => ({
   iscommenting: false,
   isToggling: false,
 
-  fetchPosts: async (feedType) => {
+  fetchPosts: async (feedType, username) => {
     set({ isFetchingPosts: true });
 
     try {
@@ -27,11 +27,11 @@ export const usePostStore = create((set) => ({
           break;
 
         case "Posts":
-          endpoint = "/posts/user-posts";
+          endpoint = `/posts/user-posts/${username}`;
           break;
 
         case "Likes":
-          endpoint = "/posts/liked-posts";
+          endpoint = `/posts/liked-posts/${username}`;
           break;
 
         case "Bookmarks":

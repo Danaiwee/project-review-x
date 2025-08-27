@@ -5,6 +5,7 @@ import cloudinary from "../lib/cloudinary.js";
 
 import Post from "../models/post.model.js";
 import Notification from "../models/notification.model.js";
+import User from "../models/user.model.js";
 
 export const getAllPosts = async (req, res) => {
   try {
@@ -24,7 +25,12 @@ export const getAllPosts = async (req, res) => {
 
 export const getLikedPost = async (req, res) => {
   try {
-    const user = req.user;
+    const username = req.params.username;
+    if (!username) {
+      return res.status(400).json({ error: "Username is required" });
+    }
+
+    const user = await User.findOne({ username });
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
@@ -64,10 +70,17 @@ export const getFollowingPosts = async (req, res) => {
 
 export const getUserPosts = async (req, res) => {
   try {
-    const userId = req.user._id;
-    if (!userId) {
+    const username = req.params.username;
+    if (!username) {
+      return res.status(400).json({ error: "Username is required" });
+    }
+
+    const user = await User.findOne({ username });
+    if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
+
+    const userId = user._id;
 
     const userPosts = await Post.find({ user: userId })
       .sort({ createdAt: -1 })
