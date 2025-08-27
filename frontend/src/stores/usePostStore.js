@@ -38,6 +38,10 @@ export const usePostStore = create((set) => ({
           endpoint = "/posts/bookmarks";
           break;
 
+        case "Retweet":
+          endpoint = `/posts/retweets/${username}`;
+          break;
+
         default:
           endpoint = "/posts/all";
       }
@@ -161,6 +165,30 @@ export const usePostStore = create((set) => ({
           ? "Added post to your bookmark"
           : "Removed post from your bookmark"
       );
+    } catch (error) {
+      console.log(error);
+    }
+  },
+
+  retweetPost: async (postId, userId) => {
+    try {
+      const response = await axios.post(`/posts/retweet/${postId}`);
+      if (response.data.error) throw new Error("Failed to retweet post");
+
+      const updatedRetweets = response.data;
+
+      set((prevState) => ({
+        posts: prevState.posts.map((post) =>
+          post._id.toString() === postId
+            ? { ...post, retweets: updatedRetweets }
+            : post
+        ),
+      }));
+
+      const isRetweet = updatedRetweets.includes(userId);
+      if (isRetweet) {
+        toast.success("Retweet post successfully");
+      }
     } catch (error) {
       console.log(error);
     }

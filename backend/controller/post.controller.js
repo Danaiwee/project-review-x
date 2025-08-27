@@ -23,29 +23,6 @@ export const getAllPosts = async (req, res) => {
   }
 };
 
-export const getLikedPost = async (req, res) => {
-  try {
-    const username = req.params.username;
-    if (!username) {
-      return res.status(400).json({ error: "Username is required" });
-    }
-
-    const user = await User.findOne({ username });
-    if (!user) {
-      return res.status(404).json({ error: "User not found" });
-    }
-
-    const likesPost = await Post.find({ _id: { $in: user.likedPost } })
-      .sort({ createdAt: -1 })
-      .populate({ path: "user", select: "-password" })
-      .populate({ path: "comments.user", select: "-password" });
-
-    return res.status(200).json(likesPost);
-  } catch (error) {
-    handleError(res, "getLikedPost", error);
-  }
-};
-
 export const getFollowingPosts = async (req, res) => {
   try {
     const user = req.user;
@@ -112,6 +89,52 @@ export const getBookmarkPosts = async (req, res) => {
     return res.status(200).json(bookmarkPosts);
   } catch (error) {
     handleError(res, "getBookmarkPosts", error);
+  }
+};
+
+export const getLikedPost = async (req, res) => {
+  try {
+    const username = req.params.username;
+    if (!username) {
+      return res.status(400).json({ error: "Username is required" });
+    }
+
+    const user = await User.findOne({ username });
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const likesPost = await Post.find({ _id: { $in: user.likedPost } })
+      .sort({ createdAt: -1 })
+      .populate({ path: "user", select: "-password" })
+      .populate({ path: "comments.user", select: "-password" });
+
+    return res.status(200).json(likesPost);
+  } catch (error) {
+    handleError(res, "getLikedPost", error);
+  }
+};
+
+export const getRetweetPosts = async (req, res) => {
+  try {
+    const username = req.params.username;
+    if (!username) {
+      return res.status(400).json({ error: "Username is required" });
+    }
+
+    const user = await User.findOne({ username });
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const posts = await Post.find({ retweets: { $in: user._id } })
+      .sort({ createdAt: -1 })
+      .populate({ path: "user", select: "-password" })
+      .populate({ path: "comments.user", select: "-password" });
+
+    return res.status(200).json(posts);
+  } catch (error) {
+    return handleError(res, "getRetweetPosts", error);
   }
 };
 
@@ -249,6 +272,40 @@ export const likeUnlikePost = async (req, res) => {
     handleError(res, "likeUnlikePost controller", error);
   } finally {
     await session.endSession();
+  }
+};
+
+export const retweetPost = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    if (!userId) {
+      return res.status(404).json({ error: "User ID not found" });
+    }
+
+    const postId = req.params.id;
+    if (!postId) {
+      return res.status(400).json({ error: "Post ID is required" });
+    }
+
+    const post = await Post.findById(postId);
+    if (!post) {
+      return res.status(404).json({ error: "Post not found" });
+    }
+
+    const isUserAlreadyRetweet = post.retweets.find((user) =>
+      user.equals(userId)
+    );
+    if (isUserAlreadyRetweet) {
+      post.retweets = post.retweets.filter((user) => !user.equals(userId));
+    } else {
+      post.retweets.push(userId);
+    }
+
+    await post.save();
+
+    return res.status(200).json(post.retweets);
+  } catch (error) {
+    return handleError(res, "retweetPost", error);
   }
 };
 

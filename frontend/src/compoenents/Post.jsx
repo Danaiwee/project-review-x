@@ -13,9 +13,19 @@ const Post = ({ post }) => {
   const [comment, setComment] = useState("");
   const [isLiking, setIsLiking] = useState(false);
   const [isToggling, setIsToggling] = useState(false);
+  const [isLoadingRetweet, setIsLoadingRetweet] = useState(false);
 
-  const { text, user, createdAt, image, comments, _id, likes, bookmarks } =
-    post;
+  const {
+    text,
+    user,
+    createdAt,
+    image,
+    comments,
+    _id,
+    likes,
+    bookmarks,
+    retweets,
+  } = post;
   const { username, fullName, profileImg, _id: postUserId } = user;
 
   const { authUser } = useUserStore();
@@ -26,11 +36,13 @@ const Post = ({ post }) => {
     isCommenting,
     createComment,
     toggleBookmark,
+    retweetPost,
   } = usePostStore();
 
   const isMyPost = authUser._id === postUserId;
   const isLiked = likes.includes(authUser._id);
   const isBookmarked = bookmarks.includes(authUser._id);
+  const isRetweet = retweets.includes(authUser._id);
 
   const handleDeletePost = async () => {
     await deletePost(_id);
@@ -61,6 +73,17 @@ const Post = ({ post }) => {
       console.log(error);
     } finally {
       setIsToggling(false);
+    }
+  };
+
+  const handleRetweetPost = async () => {
+    setIsLoadingRetweet(true);
+    try {
+      await retweetPost(_id, authUser._id);
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setIsLoadingRetweet(false);
     }
   };
   return (
@@ -208,10 +231,25 @@ const Post = ({ post }) => {
                 </form>
               </dialog>
 
-              <div className='flex gap-1 items-center group cursor-pointer'>
-                <BiRepost className='size-6 text-slate-500 group-hover:text-green-500' />
-                <span className='text-sm text-slate-500 group-hover:text-green-500'>
-                  0
+              <div
+                className='flex gap-1 items-center group cursor-pointer'
+                onClick={handleRetweetPost}
+              >
+                {isLoadingRetweet ? (
+                  <Loader2 className='size-4 animate-spin' />
+                ) : (
+                  <BiRepost
+                    className={`size-5 cursor-pointer group-hover:text-green-500 ${
+                      isRetweet ? "text-green-500" : "text-slate-500"
+                    }`}
+                  />
+                )}
+                <span
+                  className={`text-sm group-hover:text-green-500 ${
+                    isRetweet ? "text-green-500" : "text-slate-500"
+                  }`}
+                >
+                  {retweets.length}
                 </span>
               </div>
 
