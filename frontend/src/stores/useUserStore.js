@@ -12,6 +12,8 @@ export const useUserStore = create((set) => ({
   isLoggingOut: false,
   isFetching: false,
   userProfile: null,
+  isGettingSuggestedUsers: false,
+  suggestedUsers: [],
 
   checkAuth: async () => {
     set({ isCheckingAuth: true });
@@ -88,6 +90,54 @@ export const useUserStore = create((set) => ({
       console.log(error);
     } finally {
       set({ isFetching: false });
+    }
+  },
+
+  getSuggestedUsers: async () => {
+    set({ isGettingSuggestedUsers: true });
+    try {
+      const reponse = await axios.get("/users/suggested");
+      if (reponse.data.error) throw new Error("Failed to get suggested users");
+
+      set({ suggestedUsers: reponse.data });
+    } catch (error) {
+      console.log(error);
+    } finally {
+      set({ isGettingSuggestedUsers: false });
+    }
+  },
+
+  toggleFollow: async (targetId) => {
+    try {
+      const response = await axios.post(`/users/followUnfollow/${targetId}`);
+      if (response.data.error)
+        throw new Error("Failed to follow/unfollow user");
+
+      const updatedAuthUser = response.data.authUser;
+      const updatedTargetUser = response.data.targetUser;
+
+      const isFollowed = updatedAuthUser.following.includes(targetId);
+
+      set((prevState) => ({
+        // keep all of userProfile, but update following/followers if needed
+        userProfile:
+          prevState.userProfile && prevState.userProfile._id === targetId
+            ? {
+                ...prevState.userProfile,
+                followers: updatedTargetUser.followers,
+              }
+            : prevState.userProfile,
+        authUser: updatedAuthUser, // keep authUser in sync too
+      }));
+
+      await useUserStore.getState().getSuggestedUsers();
+
+      toast.success(
+        isFollowed ? "Followed successfully" : "Unfollowed successfully"
+      );
+    } catch (error) {
+      console.log(error);
+      toast.error("Failed to toggle follow");
     }
   },
 }));

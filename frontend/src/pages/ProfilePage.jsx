@@ -28,6 +28,7 @@ const ProfilePage = () => {
     getUserProfile,
     authUser,
     isFetching,
+    toggleFollow,
   } = useUserStore();
 
   const { isFetchingPosts, posts, fetchPosts } = usePostStore();
@@ -41,13 +42,15 @@ const ProfilePage = () => {
   }, [feedType, fetchPosts]);
 
   const isMyProfile = authUser?._id === user?._id;
+  const isFollowed = authUser.following.includes(user?._id);
 
   const isLoading = false;
-  const isFollowed = false;
 
   const handleImageChange = () => {};
 
-  const handleFollow = () => {};
+  const handleFollow = () => {
+    toggleFollow(user._id, authUser._id);
+  };
 
   return (
     <main className='container'>
@@ -171,7 +174,7 @@ const ProfilePage = () => {
         <div className='flex gap-2'>
           <div className='flex gap-1 items-center'>
             <p className='font-bold text-xs'>
-              {user?.following.length} following
+              {user?.following?.length} following
             </p>
             <p className='font-bold text-xs'>
               {user?.followers.length} followers

@@ -1,56 +1,86 @@
 import { Link } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 
-import { USERS } from "../constants";
 import RightSidebarSkeleton from "./skeletons/RightSidebarSkeleton";
+import { useUserStore } from "../stores/useUserStore";
+import { useEffect, useState } from "react";
 
 const RightSidebar = () => {
-  const isLoading = false;
+  const [isLoading, setIsLoading] = useState(false);
+  const {
+    isGettingSuggestedUsers,
+    getSuggestedUsers,
+    suggestedUsers,
+    toggleFollow,
+    authUser,
+  } = useUserStore();
+
+  useEffect(() => {
+    getSuggestedUsers();
+  }, [getSuggestedUsers]);
+
+  const handleFollow = async (targetId, userId) => {
+    setIsLoading(true);
+    try {
+      await toggleFollow(targetId, userId);
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (suggestedUsers.length === 0) return null;
 
   return (
     <aside className='hidden lg:block mx-2'>
       <div className='bg-gray-900 p-4 rounded-md sticky top-3'>
         <h4 className='font-bold mb-3'>Who to follow</h4>
         <div className='flex flex-col gap-4'>
-          {isLoading && (
+          {isGettingSuggestedUsers && (
             <>
-              <RightSidebarSkeleton />
-              <RightSidebarSkeleton />
-              <RightSidebarSkeleton />
-              <RightSidebarSkeleton />
-              <RightSidebarSkeleton />
+              {suggestedUsers?.map((user) => (
+                <RightSidebarSkeleton key={user._id} />
+              ))}
             </>
           )}
 
-          {USERS.map((user) => (
-            <Link
-              key={user.username}
-              to={`/profile/${user.username}`}
-              className='flex items-center justify-between gap-4'
+          {suggestedUsers.map((user) => (
+            <div
+              className='w-full flex items-center justify-between'
+              key={user?.username}
             >
-              <div className='flex items-center gap-2'>
-                <div className='avatar'>
-                  <div className='w-8 rounded-full'>
-                    <img src={user.profileImg || "/avatar.png"} />
+              <Link
+                to={`/profile/${user?.username}`}
+                className='flex items-center justify-between gap-4'
+              >
+                <div className='flex items-center gap-2'>
+                  <div className='avatar'>
+                    <div className='w-8 rounded-full'>
+                      <img src={user?.profileImg || "/avatar.png"} />
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <div className='flex flex-col'>
-                <p className='font-semibold tracking-tight truncate w-28'>
-                  {user.fullName}
-                </p>
-                <p className='text-sm text-slate-500'>@{user.username}</p>
-              </div>
+                <div className='flex flex-col'>
+                  <p className='font-semibold tracking-tight truncate w-28'>
+                    {user.fullName}
+                  </p>
+                  <p className='text-sm text-slate-500'>@{user?.username}</p>
+                </div>
+              </Link>
 
-              <button className='btn bg-white text-black hover:bg-white hover:opacity-90 rounded-full btn-sm'>
+              <button
+                className='btn bg-white text-black hover:bg-white hover:opacity-90 rounded-full btn-sm'
+                onClick={() => handleFollow(user._id, authUser._id)}
+              >
                 {isLoading ? (
                   <Loader2 className='size-5 animate-spin' />
                 ) : (
                   <>Follow</>
                 )}
               </button>
-            </Link>
+            </div>
           ))}
         </div>
       </div>

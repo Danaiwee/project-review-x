@@ -56,65 +56,67 @@ export const getSuggestedUsers = async (req, res) => {
   }
 };
 
-export const followUnfollow = async (req, res) => {
+export const followUnfollowUser = async (req, res) => {
   try {
-    const user = req.user;
-    if (!user) {
-      return res.status(401).json({ error: "User not found" });
+    const { id } = req.params;
+
+    if (id === req.user._id.toString()) {
+      return res
+        .status(400)
+        .json({ error: "You can't follow/unfollow yourself" });
     }
 
-    const followId = req.params.id;
-    if (!followId) {
-      return res.status(400).json({ error: "Follow ID is required" });
+    const targetUser = await User.findById(id);
+    if (!targetUser) {
+      return res.status(400).json({ error: "User not found" });
     }
 
-    if (user._id.equals(followId)) {
-      return res.status(400).json({ error: "You cannot follow yourself" });
-    }
+    const authUser = await User.findById(req.user._id);
+    const isFollowing = authUser.following.includes(id);
 
-    const session = await mongoose.startSession();
-    session.startTransaction();
-
-    const followUser = await User.findById(followId).session(session);
-    if (!followUser) {
-      await session.abortTransaction();
-      return res.status(404).json({ error: "Follow User not found" });
-    }
-
-    const isFollowing = user.following.some((id) => id.equals(followId));
+    let updatedAuthUser;
+    let updatedTargetUser;
 
     if (isFollowing) {
-      user.following = user.following.filter((id) => !id.equals(followId));
-      followUser.followers = followUser.followers.filter(
-        (id) => !id.equals(user._id)
+      // Unfollow
+      updatedTargetUser = await User.findByIdAndUpdate(
+        id,
+        { $pull: { followers: req.user._id } },
+        { new: true }
+      );
+      updatedAuthUser = await User.findByIdAndUpdate(
+        req.user._id,
+        { $pull: { following: id } },
+        { new: true }
       );
     } else {
-      user.following.push(followId);
-      followUser.followers.push(user._id);
-
-      await Notification.create(
-        [
-          {
-            form: user._id,
-            to: followId,
-            type: "follow",
-          },
-        ],
-        { session }
+      // Follow
+      updatedTargetUser = await User.findByIdAndUpdate(
+        id,
+        { $push: { followers: req.user._id } },
+        { new: true }
       );
+      updatedAuthUser = await User.findByIdAndUpdate(
+        req.user._id,
+        { $push: { following: id } },
+        { new: true }
+      );
+
+      const newNotification = new Notification({
+        type: "follow",
+        from: req.user._id,
+        to: targetUser._id,
+      });
+      await newNotification.save();
     }
 
-    await user.save({ session });
-    await followUser.save({ session });
-
-    await session.commitTransaction();
-
-    return res.status(200).json(user);
+    return res.status(200).json({
+      authUser: updatedAuthUser,
+      targetUser: updatedTargetUser,
+    });
   } catch (error) {
-    await session.abortTransaction();
-    handleError(res, "followUnFollow", error);
-  } finally {
-    await session.endSession();
+    console.log("Error in followUnfollowUser: ", error.message);
+    res.status(500).json({ error: error.message });
   }
 };
 
