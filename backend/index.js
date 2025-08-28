@@ -15,7 +15,6 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT;
-connectDB();
 
 app.use(express.json({ limit: "10mb" }));
 app.use(cookieParser());
@@ -31,6 +30,16 @@ app.use("/api/posts", postRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/notifications", notificationRoutes);
 
-app.listen(PORT, () => {
-  logger.info(`Server is running on PORT ${PORT}`);
-});
+const startServer = async () => {
+  try {
+    await connectDB();
+    app.listen(PORT, () => {
+      logger.info(`✅ Server is running on PORT ${PORT}`);
+    });
+  } catch (err) {
+    logger.error("❌ Failed to start server", err);
+    process.exit(1);
+  }
+};
+
+startServer();
