@@ -326,7 +326,7 @@ export const deletePost = async (req, res) => {
 
     await Post.findByIdAndDelete(postId).session(session);
 
-    user.likePost = user.likePost.filter((like) => !like.equals(postId));
+    user.likedPost = user.likedPost.filter((like) => !like.equals(postId));
 
     await user.save({ session });
 

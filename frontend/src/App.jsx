@@ -48,7 +48,7 @@ const App = () => {
 
         <Route
           path='/bookmark'
-          element={authUser ? <BookmarkPage /> : <Navigate to='/bookmark' />}
+          element={authUser ? <BookmarkPage /> : <Navigate to='/signin' />}
         />
       </Routes>
 
